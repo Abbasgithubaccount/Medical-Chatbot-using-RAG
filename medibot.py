@@ -90,5 +90,37 @@ def main():
         except Exception as e:
             st.error(f"Error: {str(e)}")
 
+def generate_answer(question):
+    CUSTOM_PROMPT_TEMPLATE = """
+    Use the pieces of information provided in the context to answer user's question.
+    If you dont know the answer, just say that you dont know, dont try to make up an answer. 
+    Dont provide anything out of the given context
+
+    Context: {context}
+    Question: {question}
+
+    Start the answer directly. No small talk please.
+    """
+
+    HUGGINGFACE_REPO_ID = "mistralai/Mistral-7B-Instruct-v0.3"
+    HF_TOKEN = os.environ.get("HF_TOKEN")
+
+    vectorstore = get_vectorstore()
+    if vectorstore is None:
+        return "Error: Could not load vectorstore."
+
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=load_llm(huggingface_repo_id=HUGGINGFACE_REPO_ID, HF_TOKEN=HF_TOKEN),
+        chain_type="stuff",
+        retriever=vectorstore.as_retriever(search_kwargs={'k': 3}),
+        return_source_documents=True,
+        chain_type_kwargs={'prompt': set_custom_prompt(CUSTOM_PROMPT_TEMPLATE)}
+    )
+
+    response = qa_chain.invoke({'query': question})
+    result = response["result"]
+    return result
+
+
 if __name__ == "__main__":
     main()
