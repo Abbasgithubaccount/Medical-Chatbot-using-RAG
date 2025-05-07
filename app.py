@@ -1,5 +1,5 @@
 import streamlit as st
-from medibot import generate_answer  # Ensure this function is defined in medibot.py
+from medibot import generate_answer  
 
 st.set_page_config(page_title="Medical Chatbot", layout="wide")
 st.title("🩺 Medical Chatbot (RAG-powered)")
